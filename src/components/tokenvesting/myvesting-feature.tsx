@@ -5,17 +5,17 @@ import { WalletButton } from '../solana/solana-provider';
 import { AppHero, ellipsify } from '../ui/ui-layout';
 import { ExplorerLink } from '../cluster/cluster-ui';
 import { useVestingProgram } from './tokenvesting-data-access';
-import { VestingCreate, VestingList } from './tokenvesting-ui';
+import { MyVestingList } from './myvesting-ui';
 
-export default function TokenVestingFeature() {
+export default function MyVestingFeature() {
   const { publicKey } = useWallet();
   const { programId } = useVestingProgram();
 
   return publicKey ? (
     <div>
       <AppHero
-        title="Token Vesting"
-        subtitle={'Create a new account by clicking the "Create" button.'}
+        title="My Vesting"
+        subtitle={'View and claim your vesting tokens'}
       >
         <p className="mb-6">
           <ExplorerLink
@@ -23,9 +23,8 @@ export default function TokenVestingFeature() {
             label={ellipsify(programId.toString())}
           />
         </p>
-        <VestingCreate />
       </AppHero>
-      <VestingList />
+      <MyVestingList />      
     </div>
   ) : (
     <div className="max-w-4xl mx-auto">
