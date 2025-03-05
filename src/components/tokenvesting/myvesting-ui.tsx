@@ -6,45 +6,8 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useMemo } from "react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { getVestingStatus, maskAddress, AddressLink } from "./helpers";
 
-
-
-// Helper function moved from tokenvesting-ui.tsx
-function getVestingStatus(account: {
-  startTime: { toNumber: () => number };
-  endTime: { toNumber: () => number };
-  cliffTime: { toNumber: () => number };
-  totalAmount: { toNumber: () => number };
-  totalWithdrawn: { toNumber: () => number };
-}) {
-  const now = Math.floor(Date.now() / 1000);
-  
-  if (account.totalWithdrawn.toNumber() >= account.totalAmount.toNumber()) {
-    return { label: "Fully Withdrawn", className: "badge badge-neutral" };
-  }
-  
-  if (now < account.startTime.toNumber()) {
-    return { label: "Not Started", className: "badge badge-warning" };
-  }
-  
-  if (now < account.cliffTime.toNumber()) {
-    return { label: "Cliff Period", className: "badge badge-warning" };
-  }
-  
-  if (now < account.endTime.toNumber()) {
-    return { label: "Vesting in Progress", className: "badge badge-info" };
-  }
-  
-  return { label: "Fully Vested", className: "badge badge-success" };
-}
-
-// Helper function moved from tokenvesting-ui.tsx
-function maskAddress(address: string): string {
-  if (!address || address.length < 10) return address;
-  return `${address.slice(0, 5)}...${address.slice(-5)}`;
-}
-
-export { getVestingStatus, maskAddress };
 
 export function MyVestingList() {
     const { accounts, getProgramAccount } = useVestingProgram();
@@ -74,7 +37,7 @@ export function MyVestingList() {
     }
   
     return (
-      <div className="space-y-6 max-w-5xl mx-auto">
+      <div className="space-y-6 max-w-8xl mx-auto">
         {accounts.isLoading ? (
           <span className="loading loading-spinner loading-lg"></span>
         ) : accounts.data?.length ? (
@@ -90,7 +53,7 @@ export function MyVestingList() {
         ) : (
           <div className="text-center">
             <h2 className="text-2xl">No vesting accounts</h2>
-            You don't have any vesting tokens assigned to your wallet.
+            You don not have any vesting tokens assigned to your wallet.
           </div>
         )}
       </div>
@@ -149,9 +112,9 @@ export function MyVestingList() {
       <div className="card bg-base-200 shadow-xl w-full">
         <div className="card-body">
           <h2 className="card-title text-xl text-center justify-center">{companyName}</h2>
-          <p className="text-gray-500">Vesting Account Address: {account.toBase58()}</p>
-          <p className="text-gray-500">Token Mint Address: {mintAddress}</p>
-          <p className="text-gray-500">Treasury Address: {treasuryAddress}</p>
+          <p className="text-gray-500">Vesting Account Address: <AddressLink address={account.toBase58()} /></p>
+          <p className="text-gray-500">Token Mint Address: <AddressLink address={mintAddress} /></p>
+          <p className="text-gray-500">Treasury Address: <AddressLink address={treasuryAddress} /></p>
           <p className="text-gray-500">Treasury Balance: {
             treasuryBalance.isLoading 
               ? "Loading..." 
@@ -177,7 +140,7 @@ export function MyVestingList() {
                     <input type="checkbox" className="peer" /> 
                     <div className="collapse-title flex justify-between items-center pr-12">
                       <div>
-                        <p>Beneficiary: {maskAddress(employee.account.beneficiary.toString())}</p>
+                        <p>Beneficiary: <AddressLink address={employee.account.beneficiary.toString()} /></p>
                         <p className="text-sm">
                           {employee.account.totalAmount.toString() === employee.account.totalWithdrawn.toString()
                             ? "All tokens withdrawn"
@@ -220,8 +183,6 @@ export function VestingClaim({ companyName, account }: { companyName: string; ac
     queryKey: ['employee', account.toString()],
     queryFn: () => program.account.employeeAccount.fetch(account)
   });
-
-  console.log("employeeAccount.data????", employeeAccount);
 
   const isDisabled = useMemo(() => {
     if (!employeeAccount.data) return true;

@@ -1,13 +1,14 @@
 "use client";
 
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Cluster } from "@solana/web3.js";
 import { useMemo, useState } from "react";
 import {
   useVestingProgram,
   useVestingProgramAccount,
 } from "./tokenvesting-data-access";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useGetTokenInfo } from "./tokenvesting-data-access";
+import { useGetTokenInfo, } from "./tokenvesting-data-access";
+import { getVestingStatus, AddressLink } from "./helpers";
 
 export function VestingCreate() {
   const { createVestingAccount } = useVestingProgram();
@@ -226,39 +227,6 @@ export function EmployeeVestingDialog({
   );
 }
 
-function getVestingStatus(account: {
-  startTime: { toNumber: () => number };
-  endTime: { toNumber: () => number };
-  cliffTime: { toNumber: () => number };
-  totalAmount: { toNumber: () => number };
-  totalWithdrawn: { toNumber: () => number };
-}) {
-  const now = Math.floor(Date.now() / 1000);
-  
-  if (account.totalWithdrawn.toNumber() >= account.totalAmount.toNumber()) {
-    return { label: "Fully Withdrawn", className: "badge badge-neutral" };
-  }
-  
-  if (now < account.startTime.toNumber()) {
-    return { label: "Not Started", className: "badge badge-warning" };
-  }
-  
-  if (now < account.cliffTime.toNumber()) {
-    return { label: "Cliff Period", className: "badge badge-warning" };
-  }
-  
-  if (now >= account.endTime.toNumber()) {
-    return { label: "Fully Vested", className: "badge badge-success" };
-  }
-  
-  return { label: "Vesting in Progress", className: "badge badge-info" };
-}
-
-function maskAddress(address: string): string {
-  if (!address || address.length < 10) return address;
-  return `${address.slice(0, 5)}...${address.slice(-5)}`;
-}
-
 export function VestingCard({ account, filterBeneficiary }: { account: PublicKey, filterBeneficiary?: PublicKey }) {
   const { accountQuery, treasuryBalance, employeeVestingAccounts } = useVestingProgramAccount({ account });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -286,9 +254,9 @@ export function VestingCard({ account, filterBeneficiary }: { account: PublicKey
     <div className="card bg-base-200 shadow-xl w-full">
       <div className="card-body">
         <h2 className="card-title text-xl text-center justify-center">{companyName}</h2>
-        <p className="text-gray-500">Vesting Account Address: {account.toBase58()}</p>
-        <p className="text-gray-500">Token Mint Address: {mintAddress}</p>
-        <p className="text-gray-500">Treasury Address: {treasuryAddress}</p>
+        <p className="text-gray-500">Vesting Account Address: <AddressLink address={account.toBase58()} /></p>
+        <p className="text-gray-500">Token Mint Address: <AddressLink address={mintAddress} /></p>
+        <p className="text-gray-500">Treasury Address: <AddressLink address={treasuryAddress} /></p>
         <p className="text-gray-500">Treasury Balance: {
           treasuryBalance.isLoading 
             ? "Loading..." 
@@ -314,7 +282,7 @@ export function VestingCard({ account, filterBeneficiary }: { account: PublicKey
                 <div key={employeeKey} className="bg-base-300 p-4 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div className="flex-1">
-                      <p>Beneficiary: {maskAddress(employee.account.beneficiary.toString())}</p>
+                      <p>Beneficiary: <AddressLink address={employee.account.beneficiary.toString()} /></p>
                       <p className="text-sm">
                         {employee.account.totalAmount.toString() === employee.account.totalWithdrawn.toString()
                           ? "All tokens withdrawn"

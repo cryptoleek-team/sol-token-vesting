@@ -15,7 +15,7 @@ export default function MyVestingFeature() {
     <div>
       <AppHero
         title="My Vesting"
-        subtitle={'View and claim your vesting tokens'}
+        subtitle={'This is the page to claim your vesting tokens. You can only see your own vesting accounts.'}
       >
         <p className="mb-6">
           <ExplorerLink

@@ -30,6 +30,11 @@ interface CreateEmployeeArgs {
   beneficiary: string;  
 }
 
+export function useClusterName() {
+  const { cluster } = useCluster();
+  return cluster.name;
+}
+
 export function useVestingProgram() {
   const { connection } = useConnection();
   const { cluster } = useCluster();
@@ -77,7 +82,7 @@ export function useVestingProgram() {
     program,
     programId,
     accounts,
-    getProgramAccount,
+    getProgramAccount,    
     createVestingAccount,
   };
 }
